@@ -87,7 +87,7 @@ public class Queue<Item> implements Iterable<Item> {
             throw new NoSuchElementException("Illegal offset value");
         }
 
-        return array[first + offset - first_offset];
+        return array[(first + offset - first_offset) % array.length];
     }
 
     private void resize(int capacity) {
