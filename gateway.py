@@ -4,7 +4,18 @@ import zmq
 from threading import Thread
 
 
-def worker_routine(worker_url, gtwy_name, msg, context=None):
+def connecttobroker(message):
+    con = zmq.Context()
+    socc = con.socket(zmq.REQ)
+    socc.connect("tcp://149.160.227.28:5555")
+    print "connected to broker"
+    socc.send_json(message)
+    # time.sleep(1)
+    ack = socc.recv()
+    return ack
+
+
+def worker_routine(worker_url, gtwy_name, context=None):
     """Worker routine"""
     context = context or zmq.Context.instance()
     # Socket to talk to dispatcher
@@ -12,11 +23,14 @@ def worker_routine(worker_url, gtwy_name, msg, context=None):
     socket.connect(worker_url)
     while True:
         message = socket.recv_json()
-        print "Received on"+gtwy_name+": ", message
-        socket.send(msg)
+        print "message received"
+        ack = connecttobroker(message)
+
+        print "Received on"+gtwy_name+": ", ack
+        socket.send_json(ack)
 
 
-def delegatejob(port, gtwy_name, msg):
+def delegatejob(port, gtwy_name):
     url_worker = "inproc://workers"+gtwy_name
     url_gtwy = "tcp://*:"+port
     # Prepare our context and sockets
@@ -30,7 +44,7 @@ def delegatejob(port, gtwy_name, msg):
     # Launch pool of worker threads
     for i in range(5):
         thread = Thread(
-            target=worker_routine, args=(url_worker, gtwy_name, msg))
+            target=worker_routine, args=(url_worker, gtwy_name))
         thread.start()
 
     zmq.proxy(gtwy, workers)
@@ -40,11 +54,11 @@ def delegatejob(port, gtwy_name, msg):
 
 
 def prod_gtwy():
-    delegatejob("5565", "prod_gtwy", "msg received by broker")
+    delegatejob("5565", "prod_gtwy")
 
 
 def cons_gtwy():
-    delegatejob("5566", "con_gtwy", "msg sent from broker")
+    delegatejob("5566", "con_gtwy")
 
 
 if __name__ == "__main__":

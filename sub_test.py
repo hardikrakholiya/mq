@@ -13,5 +13,8 @@ def main():
 
 
 if __name__ == "__main__":
-    Thread(target=main).start()
-    # Thread(target=main).start()
+    for i in range(5):
+        Thread(target=main).start()
+
+    # for i in range(5):
+    #     test_t[i].join()
