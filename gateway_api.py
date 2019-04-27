@@ -21,18 +21,15 @@ class gateway_api:
         json_msg["topic"] = self.topic
         json_msg["msg"] = inner_msg
         self.socc.send_json(json_msg)
-        print json_msg
         ack = self.socc.recv()
         return ack
 
     def sub(self):
-        global offset
         json_msg = {}
         json_msg["op"] = "get"
         json_msg["offset"] = self.offset
         json_msg["topic"] = self.topic
         self.socc.send_json(json_msg)
-        print json_msg
         msg = self.socc.recv_json()
         self.offset += 1
         return msg

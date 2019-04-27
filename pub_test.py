@@ -15,6 +15,5 @@ def main():
 
 
 if __name__ == "__main__":
-    test_t = []
     for i in range(5):
         Thread(target=main).start()
