@@ -14,9 +14,12 @@ class gateway_api:
 
     def pub(self, msg):
         json_msg = {}
-        json_msg["timestamp"] = time.time()
+        inner_msg = {}
+        inner_msg["timestamp"] = time.time()
+        inner_msg["text"] = msg
         json_msg["topic"] = self.topic
-        json_msg["message"] = msg
+        json_msg["msg"] = inner_msg
+        print json_msg
         self.socc.send_json(json_msg)
         ack = self.socc.recv()
         return ack
