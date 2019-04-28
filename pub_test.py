@@ -8,9 +8,9 @@ def main():
     host = "localhost"
     port = "5565"
     topic = "Queue-1"
-    msg = "Hello"
-    socke = ga.gateway_api(host, port, topic)
-    ack = socke.pub(msg)
+    msg = "Hello,World!"
+    publisher = ga.gateway_api(host, port, topic)
+    ack = publisher.pub(msg)
     print ack
 
 

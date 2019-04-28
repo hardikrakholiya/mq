@@ -7,8 +7,8 @@ def main():
     host = "localhost"
     port = "5566"
     topic = "Queue-1"
-    socke = ga.gateway_api(host, port, topic)
-    ack = socke.sub()
+    consumer = ga.gateway_api(host, port, topic)
+    ack = consumer.sub()
     print ack
 
 

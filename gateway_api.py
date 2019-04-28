@@ -9,8 +9,8 @@ class gateway_api:
         self.port = port
         self.offset = 0
         self.context = zmq.Context()
-        self.socc = self.context.socket(zmq.REQ)
-        self.socc.connect("tcp://"+host+":"+port)
+        self.socket = self.context.socket(zmq.REQ)
+        self.socket.connect("tcp://"+host+":"+port)
 
     def pub(self, msg):
         json_msg = {}
@@ -24,12 +24,14 @@ class gateway_api:
         ack = self.socc.recv()
         return ack
 
-    def sub(self):
+    def sub(self,offset=None):
         json_msg = {}
         json_msg["op"] = "get"
-        json_msg["offset"] = self.offset
+        # In case user wants to specifiy an offset
+        offset = offset if offset else self.offset 
+        json_msg["offset"] = offset
         json_msg["topic"] = self.topic
-        self.socc.send_json(json_msg)
-        msg = self.socc.recv_json()
+        self.socket.send_json(json_msg)
+        msg = self.socket.recv_json()
         self.offset += 1
         return msg
