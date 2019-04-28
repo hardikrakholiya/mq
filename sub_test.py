@@ -1,17 +1,20 @@
 import time
 from threading import Thread
 import gateway_api as ga
+import json
+import sys
 
 
-def main():
-    host = "localhost"
-    port = "5566"
+def sub_test(ip, port):
+    # print(ip, port)
     topic = "Queue-1"
-    consumer = ga.gateway_api(host, port, topic)
-    ack = consumer.sub()
-    print ack
+    consumer = ga.gateway_api(ip, port, topic)
+    msg = consumer.sub()
+    print msg
 
 
 if __name__ == "__main__":
+    input_config = json.load(open(sys.argv[1]))
     for i in range(5):
-        Thread(target=main).start()
+        Thread(target=sub_test, args=(
+            input_config["consumer_gateway_ip"], input_config["consumer_gateway_port"])).start()

@@ -41,7 +41,7 @@ def delegatejob(gateway_port, zk_port, gtwy_name):
     # Socket to talk to clients
     gtwy = context.socket(zmq.ROUTER)
     gtwy.bind(url_gtwy)
-    print("Starting gtwy on",url_gtwy)
+    print("Starting gtwy on", url_gtwy)
 
     # Socket to talk to workers
     workers = context.socket(zmq.DEALER)
@@ -60,11 +60,13 @@ def delegatejob(gateway_port, zk_port, gtwy_name):
 
 
 def start_prod_gateway(input_config):
-    delegatejob(input_config["producer_gateway_port"], input_config["zk_port"], "prod_gateway")
+    delegatejob(input_config["producer_gateway_port"],
+                input_config["zk_port"], "prod_gateway")
 
 
 def start_cons_gateway(input_config):
-    delegatejob(input_config["consumer_gateway_port"], input_config["zk_port"], "cons_gateway")
+    delegatejob(input_config["consumer_gateway_port"],
+                input_config["zk_port"], "cons_gateway")
 
 
 if __name__ == "__main__":
@@ -72,6 +74,8 @@ if __name__ == "__main__":
     # zk.start()
     input_config = json.load(open(sys.argv[1]))
     Thread(target=start_prod_gateway, args=(input_config,)).start()
-    print("Producer Gateway running on port", input_config["producer_gateway_port"])
+    print("Producer Gateway running on port",
+          input_config["producer_gateway_port"])
     Thread(target=start_cons_gateway, args=(input_config,)).start()
-    print("Consumer Gateway running on port", input_config["consumer_gateway_port"])
+    print("Consumer Gateway running on port",
+          input_config["consumer_gateway_port"])
