@@ -36,7 +36,7 @@ public class Queue<Item> implements Iterable<Item> {
     /**
      * enqueues the item in the queue
      */
-    public void enqueue(Item item) {
+    public synchronized void enqueue(Item item) {
         // resize to double size if necessary
         if (n >= array.length)
             resize(array.length * 2);
