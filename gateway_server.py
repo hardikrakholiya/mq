@@ -1,6 +1,8 @@
 # from kazoo.client import KazooClient
 import time
 import zmq
+import json
+import sys
 from threading import Thread
 
 
@@ -8,7 +10,7 @@ def connect_to_broker(url, port, message):
     con = zmq.Context()
     socc = con.socket(zmq.REQ)
     socc.connect("tcp://"+url+":"+port)
-    print "connected to broker"
+    print("connected to broker")
     socc.send_json(message)
     ack = socc.recv()
     return ack
@@ -22,16 +24,16 @@ def worker_routine(url_worker, port):
     socket.connect(url_worker)
     while True:
         message = socket.recv_json()
+        print(message)
         # This will be fetched from ZK
         url = "149.160.227.28"
-        port = "5555"
         ack = connect_to_broker(url, port, message)
         socket.send_json(ack)
 
 
-def delegatejob(port, gtwy_name):
+def delegatejob(gateway_port, zk_port, gtwy_name):
     url_worker = "inproc://workers"+gtwy_name
-    url_gtwy = "tcp://*:"+port
+    url_gtwy = "tcp://*:"+gateway_port
 
     # Prepare our context and sockets
     context = zmq.Context.instance()
@@ -39,6 +41,7 @@ def delegatejob(port, gtwy_name):
     # Socket to talk to clients
     gtwy = context.socket(zmq.ROUTER)
     gtwy.bind(url_gtwy)
+    print("Starting gtwy on",url_gtwy)
 
     # Socket to talk to workers
     workers = context.socket(zmq.DEALER)
@@ -47,7 +50,7 @@ def delegatejob(port, gtwy_name):
     # Launch pool of worker threads
     for i in range(5):
         thread = Thread(
-            target=worker_routine, args=(url_worker, port))
+            target=worker_routine, args=(url_worker, zk_port))
         thread.start()
 
     zmq.proxy(gtwy, workers)
@@ -56,16 +59,19 @@ def delegatejob(port, gtwy_name):
     context.term()
 
 
-def start_prod_gateway():
-    delegatejob("5565", "prod_gateway")
+def start_prod_gateway(input_config):
+    delegatejob(input_config["producer_gateway_port"], input_config["zk_port"], "prod_gateway")
 
 
-def start_cons_gateway():
-    delegatejob("5566", "cons_gateway")
+def start_cons_gateway(input_config):
+    delegatejob(input_config["consumer_gateway_port"], input_config["zk_port"], "cons_gateway")
 
 
 if __name__ == "__main__":
     # zk = KazooClient(hosts='localhost:2181', read_only=True)
     # zk.start()
-    Thread(target=start_prod_gateway).start()
-    Thread(target=start_cons_gateway).start()
+    input_config = json.load(open(sys.argv[1]))
+    Thread(target=start_prod_gateway, args=(input_config,)).start()
+    print("Producer Gateway running on port", input_config["producer_gateway_port"])
+    Thread(target=start_cons_gateway, args=(input_config,)).start()
+    print("Consumer Gateway running on port", input_config["consumer_gateway_port"])

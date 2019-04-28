@@ -1,0 +1,8 @@
+{
+    "producer_gateway_ip":"localhost",
+    "consumer_gateway_ip":"localhost",
+    "producer_gateway_port":"9000",
+    "consumer_gateway_port":"9001",
+    "zk_ip":"149.160.227.28",
+    "zk_port":"5555"
+}
