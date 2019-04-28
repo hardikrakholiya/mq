@@ -3,11 +3,11 @@ import time
 
 
 class gateway_api:
-    def __init__(self, host, port, topic):
+    def __init__(self, host, port, topic, offset=0):
         self.topic = topic
         self.host = host
         self.port = port
-        self.offset = 0
+        self.offset = offset
         self.context = zmq.Context()
         self.socket = self.context.socket(zmq.REQ)
         self.socket.connect("tcp://"+host+":"+port)
@@ -17,7 +17,6 @@ class gateway_api:
         inner_msg = {}
         inner_msg["timestamp"] = time.time()
         inner_msg["text"] = msg
-        # json_msg["op"] = "put"
         json_msg["topic"] = self.topic
         json_msg["msg"] = inner_msg
         self.socket.send_json(json_msg)
@@ -26,10 +25,9 @@ class gateway_api:
 
     def sub(self, offset=None):
         json_msg = {}
-        # json_msg["op"] = "get"
         # In case user wants to specifiy an offset
-        offset = offset if offset else self.offset
-        json_msg["offset"] = offset
+        self.offset = offset if offset else self.offset
+        json_msg["offset"] = self.offset
         json_msg["topic"] = self.topic
         self.socket.send_json(json_msg)
         msg = self.socket.recv_json()
