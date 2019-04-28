@@ -22,9 +22,9 @@ def worker_routine(url_worker, port):
     socket.connect(url_worker)
     while True:
         message = socket.recv_json()
-        # This will be fetched from ZK 
+        # This will be fetched from ZK
         url = "149.160.227.28"
-        port = 5555
+        port = "5555"
         ack = connect_to_broker(url, port, message)
         socket.send_json(ack)
 
@@ -47,7 +47,7 @@ def delegatejob(port, gtwy_name):
     # Launch pool of worker threads
     for i in range(5):
         thread = Thread(
-            target=worker_routine, args=(url_worker,port))
+            target=worker_routine, args=(url_worker, port))
         thread.start()
 
     zmq.proxy(gtwy, workers)

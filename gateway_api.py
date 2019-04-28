@@ -17,18 +17,18 @@ class gateway_api:
         inner_msg = {}
         inner_msg["timestamp"] = time.time()
         inner_msg["text"] = msg
-        json_msg["op"] = "put"
+        # json_msg["op"] = "put"
         json_msg["topic"] = self.topic
         json_msg["msg"] = inner_msg
-        self.socc.send_json(json_msg)
-        ack = self.socc.recv()
+        self.socket.send_json(json_msg)
+        ack = self.socket.recv()
         return ack
 
-    def sub(self,offset=None):
+    def sub(self, offset=None):
         json_msg = {}
-        json_msg["op"] = "get"
+        # json_msg["op"] = "get"
         # In case user wants to specifiy an offset
-        offset = offset if offset else self.offset 
+        offset = offset if offset else self.offset
         json_msg["offset"] = offset
         json_msg["topic"] = self.topic
         self.socket.send_json(json_msg)
