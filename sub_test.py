@@ -9,8 +9,10 @@ def sub_test(ip, port):
     # print(ip, port)
     topic = "Queue-1"
     consumer = ga.gateway_api(ip, port, topic)
-    msg = consumer.sub()
-    print msg
+    while True:
+        msg = consumer.sub()
+        print msg
+        time.sleep(10)
 
 
 if __name__ == "__main__":

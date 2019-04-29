@@ -1,6 +1,7 @@
 import zmq
 import time
 import json
+from kazoo.client import KazooClient
 
 
 class gateway_api:

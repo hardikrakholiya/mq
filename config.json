@@ -4,5 +4,5 @@
   "producer_gateway_port": "9005",
   "consumer_gateway_port": "9006",
   "zk_ip": "149.160.227.28",
-  "zk_port": "5555"
+  "zk_port": "2181"
 }
