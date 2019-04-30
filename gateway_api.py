@@ -1,7 +1,6 @@
 import zmq
 import time
 import json
-from kazoo.client import KazooClient
 
 
 class gateway_api:
@@ -39,5 +38,6 @@ class gateway_api:
         json_msg["topic"] = self.topic
         self.socket.send_json(json_msg)
         msg = json.loads(self.socket.recv_json())
-        self.offset += 1
-        return msg["data"]["text"]
+        if msg["status"] == 0:
+            self.offset += 1
+            return msg["data"]["text"]

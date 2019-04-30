@@ -3,6 +3,8 @@
   "consumer_gateway_ip": "localhost",
   "producer_gateway_port": "9005",
   "consumer_gateway_port": "9006",
-  "zk_ip": "149.160.227.28",
-  "zk_port": "2181"
+  "zk_ip": "localhost",
+  "zk_port": "2181",
+  "controller_ip": "localhost",
+  "controller_port": "8001"
 }
