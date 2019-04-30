@@ -7,7 +7,7 @@ from threading import Thread
 
 
 def pub_test(ip, port):
-    topic = "q1"
+    topic = "q2"
     msg = "Hello,World!"
     publisher = ga.gateway_api(ip, port, topic)
     publisher.pub(msg)

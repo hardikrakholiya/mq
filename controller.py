@@ -42,8 +42,11 @@ def assign_followers(master_broker, broker, topic):
     print broker
     if len(broker) > 1:
         followers_index = random.sample(range(0, len(broker)), 2)
-    else:
+    elif len(broker) == 1:
         followers_index = random.sample(range(0, len(broker)), 1)
+    else:
+        print "here"
+        return None
     followers = []
     for fol in followers_index:
         followers.append(broker[fol])
@@ -52,21 +55,20 @@ def assign_followers(master_broker, broker, topic):
     zk.ensure_path("/topic/"+topic+"/followers")
     for f in followers:
         follower_json = {}
-        follower_details = json.loads(
-            zk.get("/broker/"+f)[0].decode("utf-8"))
+        if zk.exists("/broker/"+f):
+            follower_details = json.loads(
+                zk.get("/broker/"+f)[0].decode("utf-8"))
         follower_json["address"] = follower_details["address"]
         follower_json["port"] = follower_details["port"]
         follower_json = json.dumps(follower_json)
         zk.create("/topic/"+topic+"/followers/"+f, follower_json)
 
     """Cache the Master and Followers"""
-    if master_broker not in mast_fol_map:
-        mast_fol_map[master_broker] = {topic: followers}
-    else:
-        mast_fol_map[master_broker][topic] = followers
+    return followers
 
 
 def gateway_listener(zk, input_config):
+    global mast_fol_map
     context = zmq.Context()
     socket = context.socket(zmq.REP)
     socket.bind("tcp://*:"+input_config["controller_port"])
@@ -77,7 +79,15 @@ def gateway_listener(zk, input_config):
             broker = zk.get_children("/broker")
             # assigning broker list.
             master_broker, master_broker_json = assign_master(broker, topic)
-            assign_followers(master_broker, broker, topic)
+            followers = assign_followers(master_broker, broker, topic)
+            if followers:
+                if master_broker not in mast_fol_map:
+                    mast_fol_map[master_broker] = {topic: followers}
+                else:
+                    mast_fol_map[master_broker][topic].append(followers)
+            print "followers set"
+            print "master_broker json", master_broker_json
+            print "map", mast_fol_map
             socket.send_json(master_broker_json)
 
 
@@ -130,9 +140,28 @@ def broker_watch(zk, input_config):
                                       master_broker, recursive=True)
                             mast_fol_map.pop(b, None)
 
+        elif len(prev_broker_list) < len(children):
+            print "trying to set new follower"
+            new_broker = None
+            for b in children:
+                if b not in prev_broker_list:
+                    new_broker = b
+            for master_b in mast_fol_map:
+                for topic in mast_fol_map[master_b]:
+                    print mast_fol_map[master_b][topic]
+                    if len(mast_fol_map[master_b][topic]) < 2:
+                        followers = assign_followers(
+                            master_b, [new_broker], topic)
+                        if followers:
+                            if master_b not in mast_fol_map:
+                                mast_fol_map[master_b] = {
+                                    topic: followers}
+                            else:
+                                mast_fol_map[master_b][topic].append(
+                                    followers[0])
+
         print "mast_fol_map", mast_fol_map
         prev_broker_list = children[:]
-        # elif len(prev_broker_list) < len(children):
 
         print("Children are now: %s" % children)
 
