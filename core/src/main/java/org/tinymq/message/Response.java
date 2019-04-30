@@ -1,15 +1,18 @@
-package message;
+package org.tinymq.message;
 
 public class Response {
     private int status;
     private Object data;
 
-    public Response(Object data) {
-        this.status = 0;
-        this.data = data;
+    public Response() {
+        this(0, null);
     }
 
-    public Response(int status, String data) {
+    public Response(Object data) {
+        this(0, data);
+    }
+
+    public Response(int status, Object data) {
         this.status = status;
         this.data = data;
     }

@@ -1,11 +1,14 @@
-package message;
+package org.tinymq.message;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.NoSuchElementException;
 
 public class Queue<Item> implements Iterable<Item> {
 
-    private static final int DEFAULT_SIZE = 4;
+    private static final int DEFAULT_SIZE = 100;
+    private static final int BATCH_SIZE = 10;
     private Item[] array;
     private int n = 0;// size of the queue
     private int first = 0;// points to the least recently added element
@@ -37,9 +40,9 @@ public class Queue<Item> implements Iterable<Item> {
      * enqueues the item in the queue
      */
     public synchronized void enqueue(Item item) {
-        // resize to double size if necessary
-        if (n >= array.length)
-            resize(array.length * 2);
+        if (n >= array.length) {
+            throw new RuntimeException("queue overflow");
+        }
 
         // add the item to the next empty space after the last element
         array[last++] = item;
@@ -55,8 +58,6 @@ public class Queue<Item> implements Iterable<Item> {
      */
 
     public Item dequeue() {
-        if (n <= array.length / 4)
-            resize(array.length / 2);
         Item deq = array[first];
         array[first++] = null;
         first_offset++;
@@ -67,38 +68,46 @@ public class Queue<Item> implements Iterable<Item> {
     }
 
     /**
-     * @return the first item in the queue
-     */
-    public Item peek() {
-        if (isEmpty())
-            throw new NoSuchElementException("Queue underflow");
-        return array[first];
-    }
-
-    /**
      * @return message at given offset
      */
-    public Item atOffset(int offset) {
+    public Item getItemAtOffset(int offset) {
         if (offset < first_offset) {
             throw new NoSuchElementException("Message at offset " + offset + " has expired");
         }
 
-        if (offset >= first_offset + n) {
+        Item item = array[(first + offset - first_offset) % array.length];
+        if (item == null) {
             throw new NoSuchElementException("Illegal offset value");
         }
 
-        return array[(first + offset - first_offset) % array.length];
+        return item;
     }
 
-    private void resize(int capacity) {
-        Item[] temp = (Item[]) new Object[capacity];
-        for (int i = 0; i < n; i++) {
-            temp[i] = array[(first + i) % array.length];
+    public Item[] getBatchAtOffset(int offset) {
+        Item[] items = (Item[]) new Object[BATCH_SIZE];
+        for (int i = 0; i < BATCH_SIZE; i++) {
+            Item item = array[(first + offset + i - first_offset) % array.length];
+            if (item == null) {
+                return items;
+            }
+            items[i] = item;
+        }
+        return items;
+    }
+
+    /**
+     * put the item at the given offset
+     *
+     * @param item
+     * @param offset
+     */
+    public void putItemAtOffset(Item item, int offset) {
+        if (offset - first_offset >= DEFAULT_SIZE) {
+            throw new RuntimeException("queue overflow");
         }
 
-        array = temp;
-        first = 0;
-        last = n;
+        array[(first + offset - first_offset) % array.length] = item;
+        n++;
     }
 
     public Iterator<Item> iterator() {
@@ -126,15 +135,31 @@ public class Queue<Item> implements Iterable<Item> {
 
     public String toString() {
         StringBuilder sb = new StringBuilder().append("Queue[");
-        for (int i = 0; i < n; i++) {
+        for (int i = 0; i < array.length; i++) {
             Item item = array[(i + first) % array.length];
             sb.append(item);
-            if (i != n - 1) {
-                sb.append(",");
-            }
+            sb.append(",");
         }
 
         return sb.append("]").toString();
+    }
+
+    public static void main(String[] args) {
+        Queue<Integer> q = new Queue<>();
+        q.enqueue(0);
+        q.enqueue(1);
+        q.putItemAtOffset(10, 10);
+        q.putItemAtOffset(99, 99);
+        q.dequeue();
+        q.putItemAtOffset(100, 100);
+        q.dequeue();
+        q.putItemAtOffset(101, 101);
+
+        System.out.println(q);
+
+        System.out.println(q.getItemAtOffset(10));
+        System.out.println(q.getItemAtOffset(101));
+
     }
 }
 
