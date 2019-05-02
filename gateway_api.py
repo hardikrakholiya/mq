@@ -22,11 +22,10 @@ class gateway_api:
         json_msg["topic"] = self.topic
         json_msg["msg"] = inner_msg
         self.socket.send_json(json_msg)
-        ack = json.loads(self.socket.recv_json())
+        ack = json.loads(self.socket.recv())
         if ack["status"] == 0:
             return
         else:
-            print ack["data"]
             return
 
     def sub(self, offset=None):

@@ -6,7 +6,6 @@ import sys
 
 
 def sub_test(ip, port):
-    # print(ip, port)
     topic = "q1"
     consumer = ga.gateway_api(ip, port, topic)
     while True:

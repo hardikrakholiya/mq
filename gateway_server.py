@@ -12,7 +12,7 @@ def connect_to_broker(url, port, message):
     socc = con.socket(zmq.REQ)
     socc.connect("tcp://"+url+":"+port)
     socc.send_json(message)
-    ack = socc.recv()
+    ack = socc.recv_json()
     return ack
 
 
@@ -41,14 +41,6 @@ def worker_routine(zk, url_worker, port, input_config, gtwy_name):
             controller_socket.send_string(message["topic"])
             master_broker = json.loads(controller_socket.recv_json())
             print "<<<<master_broker>>>>", master_broker
-            # print "json", zk.get(
-            #     "/topic/"+message["topic"]+"/master/"+master_broker)
-            # print "master_broker", master_broker
-
-        # if zk.exists("/broker"):
-        #     broker = zk.get_children("/broker")[0].decode("utf-8")
-        #     broker_info, stat = zk.get("/broker/"+broker)
-        #     broker_info = json.loads(broker_info.decode("utf-8"))
         ip = master_broker["address"]
         port = str(master_broker["port"])
         ack = connect_to_broker(ip, port, message)
@@ -65,7 +57,6 @@ def delegatejob(zk, gateway_port, zk_port, gtwy_name):
     # Socket to talk to clients
     gtwy = context.socket(zmq.ROUTER)
     gtwy.bind(url_gtwy)
-    print("Starting gtwy on", url_gtwy)
 
     # Socket to talk to workers
     workers = context.socket(zmq.DEALER)
