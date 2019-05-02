@@ -11,7 +11,6 @@ public abstract class Configurations {
     private static String zkCnxnString;
     private static String zkBasePath;
     private static String serviceName;
-    private static String instanceId;
     private static int numWorkers;
     private static int port;
 
@@ -34,7 +33,6 @@ public abstract class Configurations {
 
             //host details
             hostAddress = InetAddress.getLocalHost().getHostAddress();
-            instanceId = properties.getProperty("instance.id");
 
             //worker details
             numWorkers = Integer.parseInt(properties.getProperty("num_workers"));
@@ -60,10 +58,6 @@ public abstract class Configurations {
 
     public static String getServiceName() {
         return serviceName;
-    }
-
-    public static String getInstanceId() {
-        return instanceId;
     }
 
     public static String getHostAddress() {
