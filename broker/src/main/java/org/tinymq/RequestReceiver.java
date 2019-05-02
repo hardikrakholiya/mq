@@ -48,6 +48,7 @@ public class RequestReceiver {
         client.start();
 
         try {
+            //wait for this service to bind to a port
             Thread.sleep(1000);
         } catch (InterruptedException e) {
             e.printStackTrace();

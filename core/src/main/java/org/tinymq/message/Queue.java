@@ -6,7 +6,7 @@ import java.util.NoSuchElementException;
 
 public class Queue<Item> implements Iterable<Item> {
 
-    private static final int DEFAULT_SIZE = 10;
+    private static final int DEFAULT_SIZE = 1000000;
     private Item[] array;
     private int n = 0;// size of the queue
     private int first = 0;// points to the least recently added element
