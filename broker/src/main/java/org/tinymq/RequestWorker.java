@@ -88,7 +88,7 @@ public class RequestWorker extends Thread {
 
                     System.out.println("sending response to client");
                     // send ack back to client
-                    socket.send(objectMapper.writeValueAsString(new Response("")), ZMQ.DONTWAIT);
+                    socket.send(objectMapper.writeValueAsString(new Response("")), 0);
                 }
 
                 //handle get request
@@ -96,7 +96,7 @@ public class RequestWorker extends Thread {
                     String topic = requestObj.getTopic();
                     int offset = requestObj.getOffset();
                     Queue<Message> msgQ = getMsgQ(topic);
-                    socket.send(objectMapper.writeValueAsString(new Response(msgQ.getItemAtOffset(offset))), ZMQ.DONTWAIT);
+                    socket.send(objectMapper.writeValueAsString(new Response(msgQ.getItemAtOffset(offset))), 0);
                 }
 
                 //put at specific offset

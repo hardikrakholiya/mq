@@ -64,7 +64,7 @@ public class RequestReceiver {
                     .address(getHostAddress())
                     .port(getPort())
                     .name(getServiceName())
-                    .id("broker_" + getHostAddress() + ":" + getPort())
+                    .id("b_" + getID())
                     .build();
 
             ServiceDiscoveryBuilder.builder(Object.class)

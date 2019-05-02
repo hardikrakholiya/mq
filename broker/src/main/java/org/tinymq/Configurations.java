@@ -13,6 +13,7 @@ public abstract class Configurations {
     private static String serviceName;
     private static int numWorkers;
     private static int port;
+    private static String id;
 
 
     public static void loadConfigurations(String configPath) {
@@ -74,5 +75,12 @@ public abstract class Configurations {
 
     public static void setPort(int port) {
         Configurations.port = port;
+    }
+
+    public static String getID() {
+        if (id == null) {
+            id = Integer.toHexString((hostAddress + ":" + port).hashCode());
+        }
+        return id;
     }
 }
