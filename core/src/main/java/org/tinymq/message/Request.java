@@ -5,6 +5,7 @@ public class Request {
     private String topic;
     private int offset;
     private Message msg;
+    private String replyTo;
 
     public String getType() {
         return type;
@@ -38,6 +39,14 @@ public class Request {
         this.msg = msg;
     }
 
+    public String getReplyTo() {
+        return replyTo;
+    }
+
+    public void setReplyTo(String replyTo) {
+        this.replyTo = replyTo;
+    }
+
     @Override
     public String toString() {
         return "Request{" +
@@ -45,6 +54,7 @@ public class Request {
                 ", topic='" + topic + '\'' +
                 ", offset=" + offset +
                 ", msg=" + msg +
+                ", replyTo='" + replyTo + '\'' +
                 '}';
     }
 }

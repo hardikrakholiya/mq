@@ -13,6 +13,7 @@ public abstract class Configurations {
     private static String serviceName;
     private static String instanceId;
     private static int numWorkers;
+    private static int port;
 
 
     public static void loadConfigurations(String configPath) {
@@ -71,5 +72,13 @@ public abstract class Configurations {
 
     public static int getNumWorkers() {
         return numWorkers;
+    }
+
+    public static int getPort() {
+        return port;
+    }
+
+    public static void setPort(int port) {
+        Configurations.port = port;
     }
 }

@@ -2,7 +2,7 @@ import org.zeromq.SocketType;
 import org.zeromq.ZContext;
 import org.zeromq.ZMQ.Socket;
 
-public class Subscriber {
+public class SubscriberTest {
 
     public static void main(String[] args) {
         try (ZContext context = new ZContext()) {
@@ -14,6 +14,7 @@ public class Subscriber {
 
             for (int request_nbr = 0; request_nbr < 10; request_nbr++) {
                 requester.send("{" +
+                        "\"type\": \"get\"," +
                         "\"topic\": \"Q1\"," +
                         "\"offset\":  " + request_nbr + " " +
                         "}", 0);

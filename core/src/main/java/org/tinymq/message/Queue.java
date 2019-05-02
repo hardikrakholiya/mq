@@ -1,14 +1,12 @@
 package org.tinymq.message;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
-import java.util.List;
 import java.util.NoSuchElementException;
 
 public class Queue<Item> implements Iterable<Item> {
 
-    private static final int DEFAULT_SIZE = 100;
-    private static final int BATCH_SIZE = 10;
+    private static final int DEFAULT_SIZE = 10;
     private Item[] array;
     private int n = 0;// size of the queue
     private int first = 0;// points to the least recently added element
@@ -20,20 +18,6 @@ public class Queue<Item> implements Iterable<Item> {
      */
     public Queue() {
         array = (Item[]) new Object[DEFAULT_SIZE];
-    }
-
-    /**
-     * @return true if this queue is empty; false otherwise
-     */
-    public boolean isEmpty() {
-        return n == 0;
-    }
-
-    /**
-     * @return the number of items in this queue.
-     */
-    public int size() {
-        return n;
     }
 
     /**
@@ -83,16 +67,18 @@ public class Queue<Item> implements Iterable<Item> {
         return item;
     }
 
-    public Item[] getBatchAtOffset(int offset) {
-        Item[] items = (Item[]) new Object[BATCH_SIZE];
-        for (int i = 0; i < BATCH_SIZE; i++) {
-            Item item = array[(first + offset + i - first_offset) % array.length];
-            if (item == null) {
-                return items;
-            }
-            items[i] = item;
+    public Item[] getBatchUpto(int offset) {
+        int batchSize = offset - first_offset;
+
+        Item[] items = (Item[]) new Object[batchSize];
+        for (int j = 0, i = first; j < batchSize; i++, j++) {
+            items[j] = array[i % array.length];
         }
         return items;
+    }
+
+    public int getOffsetOfLastItem() {
+        return (last + DEFAULT_SIZE - 1 - first) % DEFAULT_SIZE + first_offset;
     }
 
     /**
@@ -106,7 +92,8 @@ public class Queue<Item> implements Iterable<Item> {
             throw new RuntimeException("queue overflow");
         }
 
-        array[(first + offset - first_offset) % array.length] = item;
+        last = (first + offset - first_offset) % array.length;
+        array[last++] = item;
         n++;
     }
 
@@ -116,7 +103,6 @@ public class Queue<Item> implements Iterable<Item> {
 
             public boolean hasNext() {
                 return (i < n);
-
             }
 
             public Item next() {
@@ -138,7 +124,7 @@ public class Queue<Item> implements Iterable<Item> {
         for (int i = 0; i < array.length; i++) {
             Item item = array[(i + first) % array.length];
             sb.append(item);
-            sb.append(",");
+            sb.append(", ");
         }
 
         return sb.append("]").toString();
@@ -146,19 +132,19 @@ public class Queue<Item> implements Iterable<Item> {
 
     public static void main(String[] args) {
         Queue<Integer> q = new Queue<>();
-        q.enqueue(0);
-        q.enqueue(1);
+        for (int i = 0; i < 10; i++) {
+            q.enqueue(i);
+        }
+
+        q.dequeue();
         q.putItemAtOffset(10, 10);
-        q.putItemAtOffset(99, 99);
         q.dequeue();
-        q.putItemAtOffset(100, 100);
-        q.dequeue();
-        q.putItemAtOffset(101, 101);
+        q.putItemAtOffset(11, 11);
 
         System.out.println(q);
-
-        System.out.println(q.getItemAtOffset(10));
-        System.out.println(q.getItemAtOffset(101));
+        System.out.println(Arrays.toString(q.array));
+        System.out.println(Arrays.toString(q.getBatchUpto(12)));
+        System.out.println(q.getOffsetOfLastItem());
 
     }
 }

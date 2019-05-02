@@ -2,6 +2,7 @@ package org.tinymq;
 
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
+import org.apache.curator.framework.recipes.cache.PathChildrenCache;
 import org.apache.curator.retry.RetryNTimes;
 import org.apache.curator.x.discovery.ServiceDiscoveryBuilder;
 import org.apache.curator.x.discovery.ServiceInstance;
@@ -13,6 +14,7 @@ import org.zeromq.ZMQ;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static org.tinymq.Configurations.*;
 
@@ -20,43 +22,53 @@ public class RequestReceiver {
 
     private ZContext context = new ZContext();
     private final Map<String, Queue<Message>> topicMsgQMap = new HashMap<>();
-    private int bindPort;
+    private final Map<String, Object> ackMonitorMap = new ConcurrentHashMap<>();
+    private final Map<String, PathChildrenCache> zkPathCache = new ConcurrentHashMap<>();
+    private CuratorFramework client = CuratorFrameworkFactory.newClient(getZkCnxnString(), new RetryNTimes(5, 1000));
 
     public RequestReceiver() {
 
         //router-dealer for workers
         new Thread(() -> {
             ZMQ.Socket clients = context.createSocket(SocketType.ROUTER);
-            bindPort = clients.bindToRandomPort("tcp://*");
+            setPort(clients.bindToRandomPort("tcp://*"));
 
             ZMQ.Socket workers = context.createSocket(SocketType.DEALER);
             workers.bind("inproc://workers");
 
             for (int i = 0; i < getNumWorkers(); i++) {
-                new RequestWorker(context, topicMsgQMap).start();
+                new RequestWorker(context, this).start();
             }
 
             ZMQ.proxy(clients, workers, null);
+
         }).start();
 
+        //connect to ZK
+        client.start();
+
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
         registerThisService();
+
     }
 
     private void registerThisService() {
         try {
-            CuratorFramework curatorFramework = CuratorFrameworkFactory.newClient(getZkCnxnString(), new RetryNTimes(5, 1000));
-            curatorFramework.start();
-
-            ServiceInstance<Integer> serviceInstance = ServiceInstance.<Integer>builder()
-                    .address(Configurations.getHostAddress())
-                    .port(bindPort)
+            ServiceInstance<Object> serviceInstance = ServiceInstance.<Object>builder()
+                    .address(getHostAddress())
+                    .port(getPort())
                     .name(getServiceName())
                     .id(getInstanceId())
                     .build();
 
-            ServiceDiscoveryBuilder.builder(Integer.class)
+            ServiceDiscoveryBuilder.builder(Object.class)
                     .basePath(getZkBasePath())
-                    .client(curatorFramework)
+                    .client(client)
                     .thisInstance(serviceInstance)
                     .build()
                     .start();
@@ -76,5 +88,21 @@ public class RequestReceiver {
         Configurations.loadConfigurations(args[0]);
 
         new RequestReceiver();
+    }
+
+    public Map<String, Queue<Message>> getTopicMsgQMap() {
+        return topicMsgQMap;
+    }
+
+    public Map<String, Object> getAckMonitorMap() {
+        return ackMonitorMap;
+    }
+
+    public CuratorFramework getZKClient() {
+        return client;
+    }
+
+    public Map<String, PathChildrenCache> getZkPathCache() {
+        return zkPathCache;
     }
 }
