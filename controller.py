@@ -40,8 +40,6 @@ def assign_followers(master_broker, broker, topic):
         followers_index = random.sample(range(0, len(broker)), 2)
     elif len(broker) == 1:
         followers_index = random.sample(range(0, len(broker)), 1)
-    else:
-        return None
     followers = []
     for fol in followers_index:
         followers.append(broker[fol])
@@ -93,6 +91,7 @@ prev_broker_list = []
 def broker_watch(zk, input_config):
     # keep a watch on the changes of the broker list
     logging.basicConfig()
+    print "Watching on /brokers for changes"
 
     @zk.ChildrenWatch("/broker")
     def watch_children(children):
@@ -139,7 +138,7 @@ def broker_watch(zk, input_config):
             new_broker = None
             for b in children:
                 if b not in prev_broker_list:
-                    print "New Broker "+b+" Up"
+                    print "New Broker: "+b+" up"
                     new_broker = b
             for master_b in mast_fol_map:
                 for topic in mast_fol_map[master_b]:

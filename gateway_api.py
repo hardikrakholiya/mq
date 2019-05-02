@@ -31,12 +31,13 @@ class gateway_api:
     def sub(self, offset=None):
         json_msg = {}
         # In case user wants to specifiy an offset
+        # print("Current offset", self.offset)
         self.offset = offset if offset else self.offset
         json_msg["type"] = "get"
         json_msg["offset"] = self.offset
         json_msg["topic"] = self.topic
         self.socket.send_json(json_msg)
-        msg = json.loads(self.socket.recv_json())
+        msg = (self.socket.recv_json())
         if msg["status"] == 0:
             self.offset += 1
             return msg["data"]["text"]
