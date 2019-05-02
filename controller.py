@@ -16,7 +16,7 @@ mast_fol_map = {}
 def assign_master(broker, topic):
     master_broker_index = randrange(0, len(broker))
     master_broker = broker[master_broker_index]
-    print("Assigning Master Broker"+master_broker+" for Queue " + topic)
+    print("Assigning Master Broker "+master_broker+" for Queue " + topic)
     broker.pop(master_broker_index)
     # Assign master
     zk.ensure_path("/topic/"+topic+"/master")
